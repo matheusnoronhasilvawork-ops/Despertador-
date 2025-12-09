@@ -37,43 +37,6 @@ export default function alarmScreen() {
         if (parseStored.length > 0) {
             console.log("Loaded alarms from storage:", stored);
             setAlarms(parseStored)
-        } else {
-            console.log(stored);
-
-            setAlarms([
-                {
-                    id: 1,
-                    time: "07:00",
-                    label: "Morning Alarm",
-                    repeat: "Everyday",
-                    location: "living room",
-                    enabled: true,
-                },
-                {
-                    id: 2,
-                    time: "08:30",
-                    label: "Workout Alarm",
-                    repeat: "Mon, Wed, Fri",
-                    location: "bathroom",
-                    enabled: false
-                },
-                {
-                    id: 3,
-                    time: "09:00",
-                    label: "Meeting Reminder",
-                    repeat: "Tue - Mon",
-                    location: "office",
-                    enabled: true
-                },
-                {
-                    id: 4,
-                    time: "10:15",
-                    label: "Medication Alarm",
-                    repeat: "Daily",
-                    location: "kitchen",
-                    enabled: false
-                }
-            ])
         }
 
     }
@@ -118,6 +81,9 @@ export default function alarmScreen() {
 
             const updatedAlarms = [...parseStored, newAlarm]
             await AsyncStorage.setItem('alarms', JSON.stringify(updatedAlarms))
+
+            setIsAddingAlarm(false)
+            loadAlarms()
         }
     }
 
@@ -264,7 +230,7 @@ export default function alarmScreen() {
                                     )}
                                 </ThemedView>
                                 <ThemedView style={{ marginTop: 60, gap: 8 }}>
-                                    <TouchableOpacity style={{ alignItems: "center", backgroundColor: "#1d3d47", borderRadius: 8, padding: 12 }}>
+                                    <TouchableOpacity onPress={() => handleAddAlarm()} style={{ alignItems: "center", backgroundColor: "#1d3d47", borderRadius: 8, padding: 12 }}>
                                         <ThemedText style={{ color: "white" }}> Save Alarm </ThemedText>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={{ alignItems: "center", borderColor: "#1d3d47", borderWidth: 2, borderRadius: 8, padding: 12 }} onPress={() => setIsAddingAlarm(false)}>
