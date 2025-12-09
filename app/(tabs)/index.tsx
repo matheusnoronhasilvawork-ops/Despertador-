@@ -22,6 +22,7 @@ export default function alarmScreen() {
     const [isAddingAlarm, setIsAddingAlarm] = useState(false)
     const [alarmName, setAlarmName] = useState("")
     const [alarmTime, setAlarmTime] = useState(new Date())
+    const [alarmRepeat, setAlarmRepeat] = useState("Everyday")
     const [showTimePicker, setShowTImePicker] = useState(false)
     const [locations, setLocations] = useState<string[]>([])
     const [deleteAlarmPopUp, setDeleteAlarmPopUp] = useState<number>()
@@ -38,7 +39,7 @@ export default function alarmScreen() {
             setAlarms(parseStored)
         } else {
             console.log(stored);
-            
+
             setAlarms([
                 {
                     id: 1,
@@ -77,9 +78,9 @@ export default function alarmScreen() {
 
     }
 
-    async function deleteAlarm(index: number) {
+    async function deleteAlarm(id: number) {
 
-        const updatedAlarms = alarms.filter(alarm => alarm.id !== alarms[index].id)
+        const updatedAlarms = alarms.filter(alarm => alarm.id !== id)
         await AsyncStorage.setItem('alarms', JSON.stringify(updatedAlarms));
 
         setAlarms(updatedAlarms)
@@ -97,7 +98,27 @@ export default function alarmScreen() {
         updateAlarms(alarms.map(alarm => alarm.id === id ? { ...alarm, enabled } : alarm));
     }
 
-    function handleAddAlarm() {
+    async function handleAddAlarm() {
+
+        const stored = await AsyncStorage.getItem('alarms')
+        const parseStored = stored ? JSON.parse(stored) : []
+
+        if (parseStored.length > 0) {
+
+            const newId = parseStored.length > 1 ? Math.max(...parseStored.map((alarm: Alarm) => alarm.id)) + 1 : 1
+
+            const newAlarm: Alarm = {
+                id: newId,
+                time: alarmTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                label: alarmName,
+                repeat: alarmRepeat,
+                location: "Home",
+                enabled: true,
+            }
+
+            const updatedAlarms = [...parseStored, newAlarm]
+            await AsyncStorage.setItem('alarms', JSON.stringify(updatedAlarms))
+        }
     }
 
     return (
@@ -120,7 +141,7 @@ export default function alarmScreen() {
                                 Your Alarms
                             </ThemedText>
                             <ThemedView style={{ width: "100%", gap: 12, marginTop: 20 }}>
-                                <TouchableOpacity onPress={() => { setDeleteAlarmPopUp(undefined), setIsAddingAlarm(true)}} style={{ width: "100%", height: 60, flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                <TouchableOpacity onPress={() => { setDeleteAlarmPopUp(undefined), setIsAddingAlarm(true) }} style={{ width: "100%", height: 60, flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
                                     <FontAwesome name="plus" size={30} color={"#A1CEDC"} />
                                     <ThemedText style={{ fontSize: 12, fontWeight: "bold" }}> Create new alarm</ThemedText>
                                 </TouchableOpacity>
@@ -141,14 +162,14 @@ export default function alarmScreen() {
                                                 onValueChange={(value) => changeStateAlarm(alarm.id, value)} />
                                         </ThemedView>
                                         {deleteAlarmPopUp === alarm.id && (
-                                            <ThemedView style={{ alignItems: "center", position: "absolute", backgroundColor: "white", borderWidth: 2, borderColor: "#eee", height: 60, width: 160 }}>
-                                                <ThemedText>Delete this alarm?</ThemedText>
+                                            <ThemedView style={{ alignItems: "center", position: "absolute", left: 60, top: 30, backgroundColor: "white", borderWidth: 2, borderRadius: 8, borderColor: "#c6c6c6ff", height: 100, width: 160 }}>
+                                                <ThemedText>Delete?</ThemedText>
                                                 <ThemedView>
-                                                    <TouchableOpacity onPress={() => deleteAlarm(index)}>
+                                                    <TouchableOpacity onPress={() => deleteAlarm(alarm.id)}>
                                                         <ThemedText>Yes</ThemedText>
                                                     </TouchableOpacity>
                                                     <TouchableOpacity onPress={() => setDeleteAlarmPopUp(undefined)}>
-                                                        <ThemedText style={{ color: "red"}}>No</ThemedText>
+                                                        <ThemedText style={{ color: "red" }}>No</ThemedText>
                                                     </TouchableOpacity>
                                                 </ThemedView>
                                             </ThemedView>
@@ -209,7 +230,9 @@ export default function alarmScreen() {
                                             style={{ fontSize: 16 }}>
                                             Alarm's repeat on:
                                         </ThemedText>
-                                        <Picker mode="dialog" itemStyle={{ fontSize: 2 }} style={{}} selectedValue={""} onValueChange={(itemValue, itemIndex) => { }}>
+                                        <Picker mode="dialog" itemStyle={{ fontSize: 2 }} style={{}} selectedValue={""} onValueChange={(itemValue, itemIndex) => {
+                                            setAlarmRepeat(itemValue)
+                                        }}>
                                             <Picker.Item label="Everyday" value={"everyday"} />
                                             <Picker.Item label="Weekdays" value={"weekdays"} />
                                             <Picker.Item label="Weekends" value={"weekends"} />
